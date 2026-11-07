@@ -1,0 +1,22 @@
+{
+  "name": "open-behavior-protocol",
+  "version": "0.1.0",
+  "description": "A structured, implementation-independent language for describing and checking behavior",
+  "type": "module",
+  "engines": { "node": ">=23.6.0" },
+  "exports": {
+    ".": { "types": "./dist/src/index.d.ts", "import": "./dist/src/index.js" },
+    "./node": { "types": "./dist/src/node/index.d.ts", "import": "./dist/src/node/index.js" }
+  },
+  "bin": { "obp": "./dist/bin/obp.js" },
+  "files": ["dist", "src", "docs", "examples", "README.md", "README.ru.md", "AGENTS.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "test": "node --test test/*.test.ts",
+    "check:example": "node bin/obp.ts check examples/publish-article.obp",
+    "typecheck": "tsc --noEmit"
+  },
+  "optionalDependencies": { "z3-solver": "5.3.3" },
+  "devDependencies": { "@types/node": "^24.19.2", "typescript": "^5.9.3" }
+}

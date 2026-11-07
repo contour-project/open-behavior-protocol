@@ -1,0 +1,45 @@
+// An internal system: a recursive expression tree.
+obp 0.1;
+
+process expression_tree {
+  version: 1,
+  intent: "Replace the left constant in an expression tree",
+  basis: { kind: "requirement", note: "Hypothetical rule", sources: [] },
+  assumptions: { progress: "may_wait" },
+  facts: [{
+    id: "tree", title: "Expression tree", type: "data",
+    dataSchema: {
+      definitions: [{
+        name: "expression",
+        type: { kind: "variant", variants: [
+          { tag: "number", type: { kind: "decimal" } },
+          { tag: "sum", type: { kind: "record", fields: [
+            { name: "left", type: { kind: "ref", name: "expression" } },
+            { name: "right", type: { kind: "ref", name: "expression" } },
+          ] } },
+        ] },
+      }],
+      root: { kind: "ref", name: "expression" },
+    },
+    initial: { kind: "value", value: "{\"tag\":\"sum\",\"value\":{\"left\":{\"tag\":\"number\",\"value\":\"0.1\"},\"right\":{\"tag\":\"number\",\"value\":\"0.2\"}}}" },
+  }],
+  steps: [{
+    id: "replace", kind: "action", title: "Replace constant", actor: "", specified: true,
+    guard: { op: "boolean", value: true },
+    changes: [{ factId: "tree", value: {
+      op: "data_set", source: { op: "var", id: "tree" },
+      path: [{ op: "text", value: "value" }, { op: "text", value: "left" }, { op: "text", value: "value" }],
+      value: { op: "text", value: "0.3" },
+    } }],
+  }],
+  definitions: [],
+  properties: [{
+    id: "replaced", title: "The left constant equals 0.3", kind: "after", actionId: "replace",
+    expr: { op: "eq", args: [
+      { op: "data_get", source: { op: "var", id: "tree" }, path: [{ op: "text", value: "value" }, { op: "text", value: "left" }, { op: "text", value: "value" }], result: "number" },
+      { op: "decimal", value: "0.3" },
+    ] },
+  }],
+  examples: [],
+  bindings: [],
+}

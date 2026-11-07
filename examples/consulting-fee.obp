@@ -1,0 +1,23 @@
+// The amount is part of the domain rule, independent of implementation.
+obp 0.1;
+
+process consulting_fee {
+  version: 1,
+  intent: "Calculate the fee for a consultation",
+  basis: { kind: "requirement", note: "Hypothetical hourly rate", sources: [] },
+  assumptions: { progress: "may_wait" },
+  facts: [
+    { id: "rate", title: "Hourly rate", type: "decimal", initial: { kind: "value", value: "120.50" } },
+    { id: "hours", title: "Hours", type: "integer", initial: { kind: "value", value: "2" } },
+    { id: "total", title: "Total fee", type: "decimal", initial: { kind: "value", value: "0" } },
+  ],
+  steps: [{
+    id: "calculate", kind: "action", title: "Calculate consultation fee", actor: "", specified: true,
+    guard: { op: "boolean", value: true },
+    changes: [{ factId: "total", value: { op: "mul", args: [{ op: "var", id: "rate" }, { op: "var", id: "hours" }] } }],
+  }],
+  definitions: [],
+  properties: [{ id: "price", title: "Fee for two hours", kind: "after", actionId: "calculate", expr: { op: "eq", args: [{ op: "var", id: "total" }, { op: "decimal", value: "241" }] } }],
+  examples: [{ id: "two_hours", title: "Two hours", initial: {}, actions: ["calculate"], expected: { total: "241" }, completed: true }],
+  bindings: [],
+}

@@ -1,0 +1,70 @@
+// Hypothetical behavior shared by a mobile app, an admin app and a server.
+obp 0.1;
+
+project publishing_workspace {
+  title: "Article publishing",
+  modules: [
+    { id: "auth", title: "Authentication", processes: [], dependsOn: [] },
+    { id: "editorial", title: "Editorial", processes: [], dependsOn: [] },
+    { id: "publishing", title: "Publishing", processes: ["publish_article"], dependsOn: ["auth", "editorial"] },
+  ],
+  entities: [
+    { id: "author", title: "Author", moduleId: null },
+    { id: "article", title: "Article", moduleId: "editorial" },
+  ],
+  environments: [
+    { id: "mobile", title: "Mobile app", kind: "mobile", technologies: [], architecture: [] },
+    { id: "editor", title: "Editorial app", kind: "web", technologies: [], architecture: [] },
+    { id: "backend", title: "Server", kind: "backend", technologies: [], architecture: [] },
+  ],
+  // Placeholder identifiers; these do not point to real code.
+  implementations: [
+    { id: "11111111-1111-1111-1111-111111111111", title: "Mobile publishing", environmentId: "mobile", codeRefs: [] },
+    { id: "22222222-2222-2222-2222-222222222222", title: "Editorial publishing", environmentId: "editor", codeRefs: [] },
+    { id: "33333333-3333-3333-3333-333333333333", title: "Server publishing", environmentId: "backend", codeRefs: [] },
+  ],
+}
+
+process publish_article {
+  version: 1,
+  intent: "Publish an article that is awaiting publication",
+  basis: { kind: "requirement", note: "Hypothetical requirement", sources: [] },
+  assumptions: { progress: "may_wait" },
+  facts: [
+    { id: "pending", title: "Article awaits publication", type: "boolean", initial: { kind: "value", value: true } },
+    { id: "published", title: "Article is published", type: "boolean", initial: { kind: "value", value: false } },
+  ],
+  steps: [
+    {
+      id: "pending_check", kind: "choice", title: "Is an article awaiting publication?", exclusive: true,
+      branches: [
+        {
+          id: "has_article", title: "Yes", otherwise: false, when: { op: "var", id: "pending" },
+          steps: [{
+            id: "publish", kind: "action", title: "Publish article", actor: "Editor", specified: true,
+            guard: { op: "var", id: "pending" },
+            changes: [
+              { factId: "pending", value: { op: "boolean", value: false } },
+              { factId: "published", value: { op: "boolean", value: true } },
+            ],
+          }],
+        },
+        {
+          id: "no_article", title: "No", otherwise: true, when: null,
+          steps: [{ id: "skip", kind: "action", title: "Report that there is no article to publish", actor: "", specified: true, guard: { op: "boolean", value: true }, changes: [] }],
+        },
+      ],
+    },
+  ],
+  definitions: [],
+  properties: [{
+    id: "consistent", title: "A published article is no longer awaiting publication", kind: "always",
+    expr: { op: "not", args: [{ op: "and", args: [{ op: "var", id: "published" }, { op: "var", id: "pending" }] }] },
+  }],
+  examples: [{ id: "success", title: "Article awaiting publication", initial: {}, actions: ["publish"], expected: { pending: false, published: true }, completed: true }],
+  bindings: [
+    { blockId: "publish", implementationId: "11111111-1111-1111-1111-111111111111" },
+    { blockId: "publish", implementationId: "22222222-2222-2222-2222-222222222222" },
+    { blockId: "publish", implementationId: "33333333-3333-3333-3333-333333333333" },
+  ],
+}
